@@ -15,6 +15,9 @@ class DataProcessing:
     def preprocessInput(self, x):
         return self.scaler_x.transform(x)
 
+    def poestprocessInput(self, x):
+        return self.scaler_x.inverse_transform(x)
+
     def preprocessOutput(self, y):
         return self.scaler_y.transform(y)
 
@@ -23,6 +26,14 @@ class DataProcessing:
 
 
 def getANSZData(n_days=7, y_offest=45, columns=('Temperature')):
+    """
+    Reads in the data from amsz.hu and converts it to trainable format.
+    :param n_days: Number of day to be involved.
+    :param y_offest: Number of days between the input and the predicted temperature.
+    :param columns: Columns to be involved. See ansz.xlsx.
+    :return: train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
+           test_data_many_day_x, test_data_many_day_y
+    """
     y_offest -= 1
     DATA_DIR = 'data'
     ANSZ_DOT_HU_DATA = os.path.join(DATA_DIR, 'ansz.xlsx')
@@ -38,10 +49,12 @@ def getANSZData(n_days=7, y_offest=45, columns=('Temperature')):
     data_many_day_x = np.array(
         [data_one_day[i:i + n_days, :].flatten() for i in range(0, data_one_day.shape[0] - n_days - y_offest)])
     data_many_day_y = np.array([data_one_day[i, 3].flatten() for i in range(n_days + y_offest, data_one_day.shape[0])])
+    rest_x = np.array([data_one_day[i:i + n_days, :].flatten() for i in
+                       range(data_one_day.shape[0] - n_days - y_offest, data_one_day.shape[0] - n_days)])
 
     train_data_many_day_x, train_data_many_day_y, \
-    dev_data_many_day_x, dev_data_many_day_y, \
-    test_data_many_day_x, test_data_many_day_y = _split_data(data_many_day_x, data_many_day_y)
+        dev_data_many_day_x, dev_data_many_day_y, \
+        test_data_many_day_x, test_data_many_day_y = _split_data(data_many_day_x, data_many_day_y)
 
     # train_data_many_day_x, train_data_many_day_y, \
     # dev_data_many_day_x, dev_data_many_day_y, \
@@ -49,7 +62,7 @@ def getANSZData(n_days=7, y_offest=45, columns=('Temperature')):
     #     _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
     #                   test_data_many_day_x, test_data_many_day_y)
     return train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y, \
-           test_data_many_day_x, test_data_many_day_y
+           test_data_many_day_x, test_data_many_day_y, rest_x
 
 
 def getData(n_days=7):
