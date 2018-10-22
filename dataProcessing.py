@@ -65,35 +65,6 @@ def getANSZData(n_days=7, y_offest=45, columns=('Temperature')):
            test_data_many_day_x, test_data_many_day_y, rest_x
 
 
-def getData(n_days=7):
-    DATA_DIR = 'data'
-    MET_DOT_HU_DATA = os.path.join(DATA_DIR, 'BP_d.txt')
-    data = pd.read_csv(MET_DOT_HU_DATA, sep=';')
-    data = _extract_date(data)
-
-    year = np.array(data['year'])
-    month = np.array(data['month'])
-    day = np.array(data['day'])
-    d_tx = np.array(data['d_tx'])
-
-    data_one_day = np.stack([year, month, day, d_tx], 1)
-    data_many_day_x = np.array(
-        [data_one_day[i:i + n_days, :].flatten() for i in range(0, data_one_day.shape[0] - n_days)])
-    data_many_day_y = np.array([data_one_day[i, 3].flatten() for i in range(n_days, data_one_day.shape[0])])
-
-    train_data_many_day_x, train_data_many_day_y, \
-    dev_data_many_day_x, dev_data_many_day_y, \
-    test_data_many_day_x, test_data_many_day_y = _split_data(data_many_day_x, data_many_day_y)
-
-    # train_data_many_day_x, train_data_many_day_y, \
-    # dev_data_many_day_x, dev_data_many_day_y, \
-    # test_data_many_day_x, test_data_many_day_y = \
-    #     _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
-    #                   test_data_many_day_x, test_data_many_day_y)
-    return train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y, \
-           test_data_many_day_x, test_data_many_day_y
-
-
 def _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
                   test_data_many_day_x, test_data_many_day_y):
     train_data_many_day_x, train_data_many_day_y = shuffle(train_data_many_day_x, train_data_many_day_y,
@@ -105,6 +76,9 @@ def _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_da
 
 
 def _split_data(data_many_day_x, data_many_day_y):
+    """
+    Split date: train-dev-test - 0.7-0.2-0.1
+    """
     train_data_many_day_x, dev_test_data_many_day_x, train_data_many_day_y, dev_test_data_many_day_y = \
         train_test_split(data_many_day_x, data_many_day_y, test_size=0.3, shuffle=False, random_state=42)
     dev_data_many_day_x, test_data_many_day_x, dev_data_many_day_y, test_data_many_day_y = \
