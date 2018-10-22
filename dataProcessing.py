@@ -22,6 +22,36 @@ class DataProcessing:
         return self.scaler_y.inverse_transform(y)
 
 
+def getANSZData(n_days=7, y_offest=45, columns=('Temperature')):
+    y_offest -= 1
+    DATA_DIR = 'data'
+    ANSZ_DOT_HU_DATA = os.path.join(DATA_DIR, 'ansz.xlsx')
+    data = pd.read_excel(ANSZ_DOT_HU_DATA)
+
+    year = data.index.year.tolist()
+    month = data.index.month.tolist()
+    day = data.index.day.tolist()
+
+    data_one_day_list = [year, month, day]
+    data_one_day_list += [data[column].tolist() for column in columns]
+    data_one_day = np.stack(data_one_day_list, 1)
+    data_many_day_x = np.array(
+        [data_one_day[i:i + n_days, :].flatten() for i in range(0, data_one_day.shape[0] - n_days - y_offest)])
+    data_many_day_y = np.array([data_one_day[i, 3].flatten() for i in range(n_days + y_offest, data_one_day.shape[0])])
+
+    train_data_many_day_x, train_data_many_day_y, \
+    dev_data_many_day_x, dev_data_many_day_y, \
+    test_data_many_day_x, test_data_many_day_y = _split_data(data_many_day_x, data_many_day_y)
+
+    # train_data_many_day_x, train_data_many_day_y, \
+    # dev_data_many_day_x, dev_data_many_day_y, \
+    # test_data_many_day_x, test_data_many_day_y = \
+    #     _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
+    #                   test_data_many_day_x, test_data_many_day_y)
+    return train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y, \
+           test_data_many_day_x, test_data_many_day_y
+
+
 def getData(n_days=7):
     DATA_DIR = 'data'
     MET_DOT_HU_DATA = os.path.join(DATA_DIR, 'BP_d.txt')
@@ -39,14 +69,14 @@ def getData(n_days=7):
     data_many_day_y = np.array([data_one_day[i, 3].flatten() for i in range(n_days, data_one_day.shape[0])])
 
     train_data_many_day_x, train_data_many_day_y, \
-        dev_data_many_day_x, dev_data_many_day_y, \
-        test_data_many_day_x, test_data_many_day_y = _split_data(data_many_day_x, data_many_day_y)
+    dev_data_many_day_x, dev_data_many_day_y, \
+    test_data_many_day_x, test_data_many_day_y = _split_data(data_many_day_x, data_many_day_y)
 
-    train_data_many_day_x, train_data_many_day_y, \
-        dev_data_many_day_x, dev_data_many_day_y, \
-        test_data_many_day_x, test_data_many_day_y = \
-        _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
-                      test_data_many_day_x, test_data_many_day_y)
+    # train_data_many_day_x, train_data_many_day_y, \
+    # dev_data_many_day_x, dev_data_many_day_y, \
+    # test_data_many_day_x, test_data_many_day_y = \
+    #     _shuffle_data(train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y,
+    #                   test_data_many_day_x, test_data_many_day_y)
     return train_data_many_day_x, train_data_many_day_y, dev_data_many_day_x, dev_data_many_day_y, \
            test_data_many_day_x, test_data_many_day_y
 
